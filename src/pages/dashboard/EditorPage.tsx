@@ -9,6 +9,7 @@ function resolveAudioUrl(url: string): string {
 import { useNavigate, useParams } from 'react-router-dom'
 import { useInvitations } from '../../hooks/useInvitations'
 import { usePhotoUpload } from '../../hooks/usePhotoUpload'
+import { useAudioUpload } from '../../hooks/useAudioUpload'
 import DashboardLayout from '../../components/dashboard/DashboardLayout'
 import type { InvitationData, ThemeId } from '../../types/database'
 
@@ -52,6 +53,7 @@ export default function EditorPage() {
   const { id } = useParams<{ id?: string }>()
   const { createInvitation, updateInvitation, invitations } = useInvitations()
   const { uploadPhoto, uploadMultiple, uploading } = usePhotoUpload()
+  const { uploadAudio, uploading: uploadingAudio } = useAudioUpload()
 
   const [form, setForm] = useState<InvitationData>(EMPTY_FORM)
   const [selectedTheme, setSelectedTheme] = useState<ThemeId>('floral')
@@ -90,6 +92,14 @@ export default function EditorPage() {
         photos: [...(prev.photos ?? []), ...newUrls].slice(0, 10),
       }))
     }
+    e.target.value = ''
+  }
+
+  async function handleAudioUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const url = await uploadAudio(file)
+    if (url) setForm((prev) => ({ ...prev, musicUrl: url }))
     e.target.value = ''
   }
 
@@ -305,27 +315,40 @@ export default function EditorPage() {
 
         {/* Musik */}
         <Card title="Musik Latar">
-          <div>
-            <label className="block text-xs text-stone-500 mb-1.5">URL file musik (MP3)</label>
-            <input
-              name="musicUrl"
-              type="url"
-              value={form.musicUrl ?? ''}
-              onChange={handleChange}
-              placeholder="https://example.com/musik.mp3"
-              className={inputCls}
-            />
-            <p className="text-xs text-stone-400 mt-1.5 leading-relaxed">
-              Paste link Google Drive biasa (format <span className="font-mono text-stone-500">/view</span>) —
-              akan dikonversi otomatis. Pastikan file dibagikan ke <strong className="text-stone-500">Anyone with the link</strong>.
-            </p>
-            {form.musicUrl && (
-              <audio
-                key={form.musicUrl}
-                src={resolveAudioUrl(form.musicUrl)}
-                controls
-                className="mt-3 w-full"
+          <div className="space-y-3">
+            <label className={`flex items-center gap-3 px-4 py-3 border-2 border-dashed rounded-xl cursor-pointer transition-all ${uploadingAudio ? 'border-stone-200 bg-stone-50 cursor-wait' : 'border-stone-200 hover:border-rose-300 hover:bg-rose-50/50'}`}>
+              <svg className="w-8 h-8 text-stone-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" />
+              </svg>
+              <div>
+                <p className="text-sm text-stone-600 font-medium">
+                  {uploadingAudio ? 'Mengupload...' : 'Upload file audio'}
+                </p>
+                <p className="text-xs text-stone-400 mt-0.5">MP3, M4A, WAV, OGG · Maks 10MB</p>
+              </div>
+              <input
+                type="file"
+                accept="audio/*"
+                className="hidden"
+                onChange={handleAudioUpload}
+                disabled={uploadingAudio}
               />
+            </label>
+
+            {form.musicUrl && (
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <p className="text-xs text-stone-500">Preview audio</p>
+                  <button
+                    type="button"
+                    onClick={() => setForm((p) => ({ ...p, musicUrl: '' }))}
+                    className="text-xs text-red-400 hover:text-red-500 transition-colors"
+                  >
+                    Hapus
+                  </button>
+                </div>
+                <audio key={form.musicUrl} src={form.musicUrl} controls className="w-full" />
+              </div>
             )}
           </div>
         </Card>
