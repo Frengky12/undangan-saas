@@ -2,7 +2,7 @@
 import { useState, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { useGuests } from '../../hooks/useGuests'
-import DashboardLayout from '../../components/DashboardLayout'
+import DashboardLayout from '../../components/dashboard/DashboardLayout'
 
 // ── Ikon ─────────────────────────────────────────────────
 function IconDownload() {

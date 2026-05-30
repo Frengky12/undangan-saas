@@ -9,7 +9,7 @@ function resolveAudioUrl(url: string): string {
 import { useNavigate, useParams } from 'react-router-dom'
 import { useInvitations } from '../../hooks/useInvitations'
 import { usePhotoUpload } from '../../hooks/usePhotoUpload'
-import DashboardLayout from '../../components/DashboardLayout'
+import DashboardLayout from '../../components/dashboard/DashboardLayout'
 import type { InvitationData, ThemeId } from '../../types/database'
 
 const THEMES: { id: ThemeId; label: string; desc: string; color: string }[] = [

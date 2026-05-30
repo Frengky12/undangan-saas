@@ -2,7 +2,7 @@
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
 import { useInvitations } from '../../hooks/useInvitations'
-import DashboardLayout from '../../components/DashboardLayout'
+import DashboardLayout from '../../components/dashboard/DashboardLayout'
 
 const THEME_LABELS: Record<string, string> = {
   floral: 'Floral Islami',

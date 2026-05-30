@@ -1,6 +1,6 @@
-// src/components/DashboardLayout.tsx
+// src/components/dashboard/DashboardLayout.tsx
 import { Link, useLocation } from 'react-router-dom'
-import { useAuthStore } from '../store/authStore'
+import { useAuthStore } from '../../store/authStore'
 
 interface Props {
   children: React.ReactNode
