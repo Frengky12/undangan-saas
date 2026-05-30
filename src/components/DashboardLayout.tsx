@@ -1,0 +1,143 @@
+// src/components/DashboardLayout.tsx
+import { Link, useLocation } from 'react-router-dom'
+import { useAuthStore } from '../store/authStore'
+
+interface Props {
+  children: React.ReactNode
+  title: string
+  actions?: React.ReactNode
+}
+
+function IconHome() {
+  return (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+    </svg>
+  )
+}
+
+function IconPlus() {
+  return (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  )
+}
+
+function IconLogout() {
+  return (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+    </svg>
+  )
+}
+
+const NAV = [
+  {
+    label: 'Dasbor',
+    to: '/dashboard',
+    icon: <IconHome />,
+    isActive: (path: string) =>
+      path === '/dashboard' ||
+      path.startsWith('/dashboard/edit') ||
+      path.startsWith('/dashboard/tamu'),
+  },
+  {
+    label: 'Buat Undangan',
+    to: '/dashboard/buat',
+    icon: <IconPlus />,
+    isActive: (path: string) => path === '/dashboard/buat',
+  },
+]
+
+export default function DashboardLayout({ children, title, actions }: Props) {
+  const location = useLocation()
+  const { profile, signOut } = useAuthStore()
+
+  const initials =
+    profile?.full_name
+      ?.split(' ')
+      .slice(0, 2)
+      .map((n) => n[0]?.toUpperCase() ?? '')
+      .join('') || 'U'
+
+  return (
+    <div className="flex h-screen bg-stone-50 overflow-hidden">
+
+      {/* ── Sidebar ────────────────────────────────── */}
+      <aside className="w-56 bg-white border-r border-stone-200 flex flex-col flex-shrink-0">
+
+        {/* Logo */}
+        <div className="h-14 flex items-center px-5 border-b border-stone-100">
+          <Link to="/dashboard" className="text-sm font-bold text-stone-800 tracking-tight">
+            undanganku<span className="text-rose-400">.id</span>
+          </Link>
+        </div>
+
+        {/* Navigasi */}
+        <nav className="flex-1 px-3 py-4 space-y-0.5">
+          {NAV.map((item) => {
+            const active = item.isActive(location.pathname)
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  active
+                    ? 'bg-rose-50 text-rose-600'
+                    : 'text-stone-500 hover:bg-stone-50 hover:text-stone-700'
+                }`}
+              >
+                {item.icon}
+                {item.label}
+              </Link>
+            )
+          })}
+        </nav>
+
+        {/* User info */}
+        <div className="border-t border-stone-100 p-3">
+          <div className="flex items-center gap-2.5 mb-2.5 px-1">
+            <div className="w-7 h-7 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center text-xs font-semibold flex-shrink-0">
+              {initials}
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-stone-700 truncate">
+                {profile?.full_name ?? 'Pengguna'}
+              </p>
+              <span className={`inline-block text-[10px] px-1.5 py-0.5 rounded-full font-medium mt-0.5 ${
+                profile?.plan === 'pro'
+                  ? 'bg-rose-100 text-rose-600'
+                  : 'bg-stone-100 text-stone-400'
+              }`}>
+                {profile?.plan === 'pro' ? 'Pro' : 'Free'}
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={signOut}
+            className="flex items-center gap-2 w-full px-3 py-1.5 text-xs text-stone-400 hover:text-stone-600 hover:bg-stone-50 rounded-lg transition-colors"
+          >
+            <IconLogout />
+            Keluar
+          </button>
+        </div>
+      </aside>
+
+      {/* ── Main area ──────────────────────────────── */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+        {/* Top header */}
+        <header className="h-14 bg-white border-b border-stone-200 flex items-center justify-between px-6 flex-shrink-0">
+          <h1 className="text-sm font-semibold text-stone-800">{title}</h1>
+          {actions && <div className="flex items-center gap-2">{actions}</div>}
+        </header>
+
+        {/* Konten */}
+        <main className="flex-1 overflow-y-auto p-6">
+          {children}
+        </main>
+      </div>
+    </div>
+  )
+}
