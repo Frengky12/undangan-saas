@@ -176,7 +176,7 @@ export default function GuestsPage() {
             className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-rose-500 hover:bg-rose-600 text-white rounded-lg transition-colors"
           >
             <IconUpload />
-            Import CSV
+            <span className="hidden sm:inline">Import CSV</span>
           </button>
           <button
             onClick={exportCSV}
@@ -184,13 +184,13 @@ export default function GuestsPage() {
             className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-stone-200 rounded-lg hover:bg-stone-50 text-stone-600 disabled:opacity-40 transition-colors"
           >
             <IconDownload />
-            Export CSV
+            <span className="hidden sm:inline">Export CSV</span>
           </button>
         </div>
       }
     >
       {/* ── Statistik ─────────────────────────────── */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         {[
           { label: 'Total Tamu',       value: stats.total,          color: 'text-stone-700', bg: 'bg-white' },
           { label: 'Hadir',            value: stats.hadir,          color: 'text-green-600', bg: 'bg-green-50' },

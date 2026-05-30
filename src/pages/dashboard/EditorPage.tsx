@@ -222,7 +222,7 @@ export default function EditorPage() {
 
         {/* Data Pengantin */}
         <Card title="Data Pengantin">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
               { name: 'groomName',   label: 'Nama mempelai pria *',    placeholder: 'Muhammad Rafi' },
               { name: 'brideName',   label: 'Nama mempelai wanita *',   placeholder: 'Sarah Amalia' },
@@ -250,7 +250,7 @@ export default function EditorPage() {
             {/* Akad */}
             <div>
               <p className="text-xs font-medium text-stone-500 mb-2 uppercase tracking-wider">Akad Nikah</p>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs text-stone-400 mb-1.5">Tanggal *</label>
                   <input type="date" name="akadDate" value={form.akadDate} onChange={handleChange} className={inputCls} />
@@ -277,7 +277,7 @@ export default function EditorPage() {
                   <input type="time" name="resepsiTime" value={form.resepsiTime} onChange={handleChange} className={inputCls} />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs text-stone-400 mb-1.5">Nama gedung / lokasi *</label>
                   <input name="venue" type="text" value={form.venue} onChange={handleChange}
