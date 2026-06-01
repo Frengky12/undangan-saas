@@ -3,116 +3,17 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { usePublicInvitation } from '../../hooks/useInvitations'
 import { useRsvp, usePublicGuests } from '../../hooks/useGuests'
+import { useReveal } from '../../hooks/useReveal'
+import { THEMES } from '../../components/invitation/themes'
+import { SectionOrnament } from '../../components/invitation/Ornaments'
+import { FloatingParticles } from '../../components/invitation/FloatingParticles'
+import { CountdownFlip } from '../../components/invitation/CountdownFlip'
 import type { ThemeId } from '../../types/database'
 
 function resolveAudioUrl(url: string): string {
   const match = url.match(/drive\.google\.com\/file\/d\/([^/?]+)/)
   if (match) return `https://drive.google.com/uc?id=${match[1]}&export=download&confirm=t`
   return url
-}
-
-type ThemeCfg = {
-  heroBg: string
-  coverBg: string
-  accent: string
-  accentText: string
-  accentBtn: string
-  submitBtn: string
-  ring: string
-  photoBorder: string
-  sectionBg: string
-  cardBg: string
-  countdownBox: string
-  ornamentColor: string | null
-  font: string
-  photoShape: string
-  dividerColor: string
-}
-
-const THEMES: Record<ThemeId, ThemeCfg> = {
-  floral: {
-    heroBg:       'bg-gradient-to-b from-rose-50 via-pink-50/30 to-stone-50',
-    coverBg:      'bg-gradient-to-b from-rose-100 via-rose-50 to-pink-50',
-    accent:       'text-rose-300',
-    accentText:   'text-rose-400',
-    accentBtn:    'border-rose-200 text-rose-400 hover:bg-rose-50',
-    submitBtn:    'bg-rose-400 hover:bg-rose-500',
-    ring:         'focus:ring-rose-200',
-    photoBorder:  'border-white shadow-xl shadow-rose-200/50',
-    sectionBg:    'bg-white',
-    cardBg:       'bg-rose-50/60 border border-rose-100',
-    countdownBox: 'bg-white border border-rose-100 shadow-sm',
-    ornamentColor: '#f43f5e',
-    font:         'font-serif',
-    photoShape:   'rounded-full',
-    dividerColor: 'bg-rose-200/60',
-  },
-  modern: {
-    heroBg:       'bg-gradient-to-b from-slate-100 via-slate-50 to-white',
-    coverBg:      'bg-gradient-to-b from-slate-200 via-slate-100 to-slate-50',
-    accent:       'text-indigo-400',
-    accentText:   'text-indigo-500',
-    accentBtn:    'border-indigo-200 text-indigo-400 hover:bg-indigo-50',
-    submitBtn:    'bg-indigo-500 hover:bg-indigo-600',
-    ring:         'focus:ring-indigo-200',
-    photoBorder:  'border-white shadow-xl shadow-slate-200/50',
-    sectionBg:    'bg-slate-50',
-    cardBg:       'bg-white border border-slate-200',
-    countdownBox: 'bg-white border border-slate-200 shadow-sm',
-    ornamentColor: null,
-    font:         'font-sans',
-    photoShape:   'rounded-2xl',
-    dividerColor: 'bg-slate-300/60',
-  },
-  klasik: {
-    heroBg:       'bg-gradient-to-b from-amber-50 via-yellow-50/20 to-stone-100',
-    coverBg:      'bg-gradient-to-b from-amber-100 via-amber-50 to-yellow-50',
-    accent:       'text-amber-500',
-    accentText:   'text-amber-600',
-    accentBtn:    'border-amber-300 text-amber-600 hover:bg-amber-50',
-    submitBtn:    'bg-amber-500 hover:bg-amber-600',
-    ring:         'focus:ring-amber-200',
-    photoBorder:  'border-amber-100 shadow-xl shadow-amber-200/50',
-    sectionBg:    'bg-amber-50/40',
-    cardBg:       'bg-amber-50 border border-amber-100',
-    countdownBox: 'bg-white border border-amber-100 shadow-sm',
-    ornamentColor: '#f59e0b',
-    font:         'font-serif',
-    photoShape:   'rounded-full',
-    dividerColor: 'bg-amber-200/70',
-  },
-}
-
-function FloralOrnament({ color }: { color: string }) {
-  return (
-    <svg className="w-20 h-6 opacity-30" viewBox="0 0 100 30" fill={color}>
-      <path d="M50 15 C40 5 20 5 10 15 C20 25 40 25 50 15Z" />
-      <path d="M50 15 C60 5 80 5 90 15 C80 25 60 25 50 15Z" />
-      <circle cx="50" cy="15" r="3" />
-    </svg>
-  )
-}
-
-function KlasikOrnament({ color }: { color: string }) {
-  return (
-    <svg className="w-24 h-6 opacity-30" viewBox="0 0 120 30" fill="none" stroke={color} strokeWidth="1.5">
-      <path d="M5 15 L28 6 L33 15 L28 24 L5 15Z" />
-      <path d="M115 15 L92 6 L87 15 L92 24 L115 15Z" />
-      <line x1="36" y1="15" x2="84" y2="15" />
-      <circle cx="60" cy="15" r="4" fill={color} fillOpacity="0.15" />
-      <circle cx="60" cy="15" r="2" fill={color} fillOpacity="0.4" />
-    </svg>
-  )
-}
-
-function SectionTitle({ label, t }: { label: string; t: ThemeCfg }) {
-  return (
-    <div className="flex items-center gap-3 mb-8">
-      <div className={`h-px flex-1 ${t.dividerColor}`} />
-      <p className={`text-[10px] tracking-[.3em] ${t.accentText} uppercase whitespace-nowrap font-medium`}>{label}</p>
-      <div className={`h-px flex-1 ${t.dividerColor}`} />
-    </div>
-  )
 }
 
 function IconCalendar({ cls }: { cls: string }) {
@@ -140,6 +41,31 @@ function IconPin({ cls }: { cls: string }) {
   )
 }
 
+function RevealSection({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+  const { ref, visible } = useReveal()
+  return (
+    <section
+      ref={ref as React.RefObject<HTMLElement>}
+      className={`${className} reveal-hidden ${visible ? 'reveal-visible' : ''}`}
+      style={{ transitionDelay: visible ? `${delay}ms` : '0ms' }}
+    >
+      {children}
+    </section>
+  )
+}
+
+type ThemeCfg = typeof THEMES[ThemeId]
+
+function SectionTitleComp({ label, t }: { label: string; t: ThemeCfg }) {
+  return (
+    <div className="flex items-center gap-3 mb-8">
+      <div className={`h-px flex-1 ${t.dividerColor}`} />
+      <p className={`text-[10px] tracking-[.3em] ${t.accentText} uppercase whitespace-nowrap font-medium`}>{label}</p>
+      <div className={`h-px flex-1 ${t.dividerColor}`} />
+    </div>
+  )
+}
+
 export default function InvitationPage() {
   const { slug } = useParams<{ slug: string }>()
   const { invitation, loading, notFound } = usePublicInvitation(slug!)
@@ -147,12 +73,19 @@ export default function InvitationPage() {
   const { guests: ucapan } = usePublicGuests(invitation?.id ?? '')
 
   const [opened, setOpened] = useState(false)
+  const [openAnim, setOpenAnim] = useState(false)
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 })
   const [rsvpForm, setRsvpForm] = useState({ name: '', phone: '', attendance: 'hadir' as const, message: '' })
   const [musicPlaying, setMusicPlaying] = useState(false)
   const [musicError, setMusicError] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const [coverReady, setCoverReady] = useState(false)
   const audioRef = useRef<HTMLAudioElement>(null)
+
+  useEffect(() => {
+    const t = setTimeout(() => setCoverReady(true), 300)
+    return () => clearTimeout(t)
+  }, [])
 
   useEffect(() => {
     if (!invitation?.data.resepsiDate) return
@@ -185,11 +118,11 @@ export default function InvitationPage() {
   }, [lightboxIndex, invitation?.data.photos])
 
   function openInvitation() {
-    setOpened(true)
+    setOpenAnim(true)
+    setTimeout(() => setOpened(true), 600)
     const audio = audioRef.current
     if (!audio) return
     const tryPlay = () => audio.play().then(() => setMusicPlaying(true)).catch(() => setMusicPlaying(false))
-    // Audio sudah siap → langsung play; belum siap → tunggu event canplay
     if (audio.readyState >= 3) tryPlay()
     else audio.addEventListener('canplay', tryPlay, { once: true })
   }
@@ -208,14 +141,17 @@ export default function InvitationPage() {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-rose-50">
-      <p className="text-rose-300 text-sm animate-pulse">Membuka undangan...</p>
+      <div className="text-center">
+        <div className="w-8 h-8 border-2 border-rose-200 border-t-rose-400 rounded-full animate-spin mx-auto mb-3" />
+        <p className="text-rose-300 text-sm">Membuka undangan...</p>
+      </div>
     </div>
   )
 
   if (notFound) return (
     <div className="min-h-screen flex items-center justify-center bg-stone-50">
-      <div className="text-center">
-        <p className="text-4xl mb-3">💌</p>
+      <div className="text-center animate-fade-in">
+        <p className="text-5xl mb-4">💌</p>
         <p className="text-stone-500">Undangan tidak ditemukan</p>
       </div>
     </div>
@@ -225,15 +161,21 @@ export default function InvitationPage() {
   const themeId = invitation!.theme_id
   const t = THEMES[themeId] ?? THEMES.floral
 
-  const inputCls = `w-full px-3 py-2.5 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 ${t.ring} bg-white`
+  const inputCls = `w-full px-3 py-2.5 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 ${t.ring} bg-white transition-shadow`
   const fmt = (dateStr: string, opts: Intl.DateTimeFormatOptions) =>
     new Date(dateStr).toLocaleDateString('id-ID', opts)
 
-  const Ornament = () => {
-    if (themeId === 'floral' && t.ornamentColor) return <FloralOrnament color={t.ornamentColor} />
-    if (themeId === 'klasik' && t.ornamentColor) return <KlasikOrnament color={t.ornamentColor} />
-    return null
-  }
+  const glowAnim = themeId === 'floral'
+    ? 'pulseGlow 2.5s ease-in-out infinite'
+    : themeId === 'klasik'
+    ? 'pulseGlowAmber 2.5s ease-in-out infinite'
+    : 'pulseGlowIndigo 2.5s ease-in-out infinite'
+
+  const ampColor = themeId === 'klasik'
+    ? 'shimmer-gold'
+    : themeId === 'modern'
+    ? 'text-indigo-400'
+    : 'gradient-text'
 
   return (
     <div className={`min-h-screen ${t.font}`}>
@@ -249,51 +191,121 @@ export default function InvitationPage() {
       )}
 
       {/* ── Cover Screen ─────────────────────────────────── */}
-      <div className={`fixed inset-0 z-40 flex flex-col items-center justify-center px-8 text-center transition-all duration-700 ease-in-out ${t.coverBg} ${opened ? 'opacity-0 pointer-events-none scale-105' : 'opacity-100 scale-100'}`}>
-        <Ornament />
+      <div
+        className={`fixed inset-0 z-40 flex flex-col items-center justify-center px-8 text-center ${t.coverBg} overflow-hidden`}
+        style={{
+          transition: 'opacity 0.6s ease, transform 0.6s ease',
+          opacity: openAnim ? 0 : 1,
+          transform: openAnim ? 'scale(1.08)' : 'scale(1)',
+          pointerEvents: openAnim ? 'none' : 'auto',
+        }}
+      >
+        <FloatingParticles themeId={themeId} />
 
-        <p className={`text-[10px] tracking-[.3em] uppercase ${t.accentText} mt-5 mb-6`}>
-          Bismillahirrahmanirrahim
-        </p>
-
-        {d.photoUrl && (
-          <img
-            src={d.photoUrl}
-            alt="foto pengantin"
-            className={`w-24 h-24 object-cover border-4 mb-5 ${t.photoBorder} ${t.photoShape}`}
-          />
+        {/* Background geometric (modern only) */}
+        {themeId === 'modern' && (
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute top-1/4 left-1/4 w-32 h-32 border border-indigo-200/30 rounded-full geo-rotate" style={{ animationDuration: '25s' }} />
+            <div className="absolute top-1/3 right-1/4 w-20 h-20 border border-indigo-200/20 rotate-45 geo-rotate" style={{ animationDuration: '18s', animationDirection: 'reverse' }} />
+            <div className="absolute bottom-1/4 left-1/3 w-16 h-16 border border-indigo-100/30 rounded-full geo-rotate" style={{ animationDuration: '30s' }} />
+          </div>
         )}
 
-        <p className="text-xs text-stone-400 italic max-w-xs leading-relaxed mb-6">
-          {d.quranVerse || '"Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu pasangan-pasangan dari jenismu sendiri..."'}
-        </p>
-
-        <h1 className="text-3xl font-light text-stone-700">{d.groomName}</h1>
-        <div className="flex items-center gap-3 my-2">
-          <div className={`h-px w-8 ${t.dividerColor}`} />
-          <span className={`${t.accent} text-lg`}>&</span>
-          <div className={`h-px w-8 ${t.dividerColor}`} />
-        </div>
-        <h1 className="text-3xl font-light text-stone-700">{d.brideName}</h1>
-
-        {d.resepsiDate && (
-          <p className="text-xs text-stone-400 mt-4 tracking-widest">
-            {fmt(d.resepsiDate, { day: 'numeric', month: 'long', year: 'numeric' })}
-          </p>
-        )}
-
-        <div className="mt-5 mb-7"><Ornament /></div>
-
-        <button
-          onClick={openInvitation}
-          className={`px-7 py-2.5 rounded-full text-sm font-medium text-white shadow-lg transition-all hover:scale-105 active:scale-95 ${t.submitBtn}`}
+        <div
+          className="relative z-10 flex flex-col items-center"
+          style={{ opacity: coverReady ? 1 : 0, transition: 'opacity 0.5s ease' }}
         >
-          ✉ Buka Undangan
-        </button>
-        <p className="text-[10px] text-stone-300 mt-3">Sentuh untuk membuka</p>
+          <div className="animate-slide-up" style={{ animationDelay: '0.1s', animationFillMode: 'both', opacity: 0 }}>
+            <SectionOrnament themeId={themeId} ornamentColor={t.ornamentColor} />
+          </div>
+
+          <p
+            className={`text-[10px] tracking-[.3em] uppercase ${t.accentText} mt-5 mb-6`}
+            style={{ animation: 'fadeIn 1s 0.3s ease forwards', opacity: 0 }}
+          >
+            Bismillahirrahmanirrahim
+          </p>
+
+          {d.photoUrl && (
+            <div
+              className="mb-5"
+              style={{ animation: 'slideUp 0.8s 0.4s ease forwards', opacity: 0 }}
+            >
+              <img
+                src={d.photoUrl}
+                alt="foto pengantin"
+                className={`w-24 h-24 object-cover border-4 photo-3d ${t.photoBorder} ${t.photoShape}`}
+              />
+            </div>
+          )}
+
+          <p
+            className="text-xs text-stone-400 italic max-w-xs leading-relaxed mb-6"
+            style={{ animation: 'fadeIn 1s 0.6s ease forwards', opacity: 0 }}
+          >
+            {d.quranVerse || 'وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا (QS. Ar-Rum: 21)'}
+          </p>
+
+          <h1
+            className="text-3xl font-light text-stone-700"
+            style={{ animation: 'nameReveal 0.9s 0.8s ease forwards', opacity: 0 }}
+          >
+            {d.groomName}
+          </h1>
+
+          <div
+            className="flex items-center gap-3 my-2"
+            style={{ animation: 'fadeIn 0.6s 1.1s ease forwards', opacity: 0 }}
+          >
+            <div className={`h-px w-8 ${t.dividerColor}`} />
+            <span className={`text-lg ${ampColor}`}>&amp;</span>
+            <div className={`h-px w-8 ${t.dividerColor}`} />
+          </div>
+
+          <h1
+            className="text-3xl font-light text-stone-700"
+            style={{ animation: 'nameReveal 0.9s 1.2s ease forwards', opacity: 0 }}
+          >
+            {d.brideName}
+          </h1>
+
+          {d.resepsiDate && (
+            <p
+              className="text-xs text-stone-400 mt-4 tracking-widest"
+              style={{ animation: 'fadeIn 0.8s 1.5s ease forwards', opacity: 0 }}
+            >
+              {fmt(d.resepsiDate, { day: 'numeric', month: 'long', year: 'numeric' })}
+            </p>
+          )}
+
+          <div
+            className="mt-5 mb-7"
+            style={{ animation: 'fadeIn 0.8s 1.6s ease forwards', opacity: 0 }}
+          >
+            <SectionOrnament themeId={themeId} ornamentColor={t.ornamentColor} />
+          </div>
+
+          <button
+            onClick={openInvitation}
+            className={`relative px-8 py-3 rounded-full text-sm font-medium text-white shadow-lg transition-all hover:scale-105 active:scale-95 ${t.submitBtn}`}
+            style={{
+              animation: `fadeIn 0.8s 1.8s ease forwards, ${glowAnim}`,
+              opacity: 0,
+              animationFillMode: 'forwards',
+            }}
+          >
+            ✉ Buka Undangan
+          </button>
+          <p
+            className="text-[10px] text-stone-300 mt-3"
+            style={{ animation: 'fadeIn 0.8s 2s ease forwards', opacity: 0 }}
+          >
+            Sentuh untuk membuka
+          </p>
+        </div>
       </div>
 
-      {/* ── Floating musik (selalu di atas, tidak terpengaruh layer) ── */}
+      {/* ── Floating musik ──────────────────────────────────── */}
       {d.musicUrl && opened && !musicError && (
         <button
           onClick={toggleMusic}
@@ -313,11 +325,13 @@ export default function InvitationPage() {
         </button>
       )}
 
-      {/* ── Konten Utama ─────────────────────────────────── */}
-      <div className={`transition-opacity duration-500 ${opened ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+      {/* ── Konten Utama ─────────────────────────────────────── */}
+      <div style={{ opacity: opened ? 1 : 0, transition: 'opacity 0.5s ease 0.3s', pointerEvents: opened ? 'auto' : 'none' }}>
 
         {/* ── Hero ─────────────────────────────── */}
         <section className={`relative min-h-screen flex flex-col items-center justify-center text-center px-6 pb-16 ${t.heroBg} overflow-hidden`}>
+
+          {/* Background pattern */}
           {t.ornamentColor && (
             <div
               className="absolute inset-0 opacity-[0.04] pointer-events-none"
@@ -330,88 +344,94 @@ export default function InvitationPage() {
             />
           )}
 
-          <div className="mb-4"><Ornament /></div>
-
-          <p className={`text-[10px] tracking-[.3em] ${t.accentText} uppercase mb-6`}>
-            Bismillahirrahmanirrahim
-          </p>
-
-          {d.photoUrl && (
-            <img
-              src={d.photoUrl}
-              alt="foto pengantin"
-              className={`w-40 h-40 object-cover border-4 mb-8 ${t.photoBorder} ${t.photoShape}`}
-            />
-          )}
-
-          {d.quranVerse && (
-            <p className="text-sm text-stone-400 italic max-w-xs mb-8 leading-relaxed">{d.quranVerse}</p>
-          )}
-
-          <p className="text-xs text-stone-400 tracking-[.2em] uppercase mb-4">Pernikahan</p>
-
-          <h1 className="text-4xl font-light text-stone-700">{d.groomName}</h1>
-          <div className="flex items-center gap-4 my-3">
-            <div className={`h-px w-14 ${t.dividerColor}`} />
-            <span className={`${t.accent} text-2xl font-light`}>&</span>
-            <div className={`h-px w-14 ${t.dividerColor}`} />
-          </div>
-          <h1 className="text-4xl font-light text-stone-700">{d.brideName}</h1>
-
-          {(d.groomFather || d.groomMother || d.brideFather || d.brideMother) && (
-            <div className="mt-4 space-y-1">
-              {(d.groomFather || d.groomMother) && (
-                <p className="text-xs text-stone-400 leading-relaxed">
-                  Putra dari{' '}
-                  {[d.groomFather && `Bapak ${d.groomFather}`, d.groomMother && `Ibu ${d.groomMother}`]
-                    .filter(Boolean).join(' & ')}
-                </p>
-              )}
-              {(d.brideFather || d.brideMother) && (
-                <p className="text-xs text-stone-400 leading-relaxed">
-                  Putri dari{' '}
-                  {[d.brideFather && `Bapak ${d.brideFather}`, d.brideMother && `Ibu ${d.brideMother}`]
-                    .filter(Boolean).join(' & ')}
-                </p>
-              )}
+          {/* Modern geometric background */}
+          {themeId === 'modern' && (
+            <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
+              <div className="absolute -top-20 -right-20 w-64 h-64 border border-indigo-200 rounded-full geo-rotate" style={{ animationDuration: '40s' }} />
+              <div className="absolute -bottom-10 -left-10 w-48 h-48 border border-indigo-100 rounded-full geo-rotate" style={{ animationDuration: '30s', animationDirection: 'reverse' }} />
             </div>
           )}
 
-          {d.resepsiDate && (
-            <p className="text-xs text-stone-400 mt-5 tracking-widest uppercase">
-              {fmt(d.resepsiDate, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+          <div className="relative z-10 flex flex-col items-center animate-slide-up">
+            <div className="mb-4">
+              <SectionOrnament themeId={themeId} ornamentColor={t.ornamentColor} />
+            </div>
+
+            <p className={`text-[10px] tracking-[.3em] ${t.accentText} uppercase mb-6`}>
+              Bismillahirrahmanirrahim
             </p>
-          )}
 
-          <div className="mt-6"><Ornament /></div>
-          <div className="mt-6 text-stone-300 text-xs animate-bounce">↓</div>
-        </section>
-
-        {/* ── Countdown ────────────────────────── */}
-        <section className={`py-14 px-6 text-center ${t.sectionBg}`}>
-          <SectionTitle label="Menuju Hari Bahagia" t={t} />
-          <div className="flex justify-center gap-3">
-            {[
-              { val: timeLeft.days, label: 'Hari' },
-              { val: timeLeft.hours, label: 'Jam' },
-              { val: timeLeft.minutes, label: 'Menit' },
-              { val: timeLeft.seconds, label: 'Detik' },
-            ].map(({ val, label }) => (
-              <div key={label} className="text-center">
-                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${t.countdownBox}`}>
-                  <span className="text-2xl font-light text-stone-700 tabular-nums">
-                    {String(val).padStart(2, '0')}
-                  </span>
-                </div>
-                <p className="text-[10px] text-stone-400 mt-2 tracking-wide">{label}</p>
+            {d.photoUrl && (
+              <div className={`w-44 h-44 mb-8 photo-3d border-4 overflow-hidden ${t.photoBorder} ${t.photoShape}`}
+                style={{ filter: themeId === 'klasik' ? 'drop-shadow(0 0 20px rgba(245,158,11,0.3))' : undefined }}
+              >
+                <img
+                  src={d.photoUrl}
+                  alt="foto pengantin"
+                  className="w-full h-full object-cover"
+                />
               </div>
-            ))}
+            )}
+
+            {d.quranVerse && (
+              <p className="text-sm text-stone-400 italic max-w-xs mb-8 leading-relaxed">{d.quranVerse}</p>
+            )}
+
+            <p className="text-xs text-stone-400 tracking-[.2em] uppercase mb-4">Pernikahan</p>
+
+            <h1 className={`text-4xl font-light ${themeId === 'klasik' ? 'text-amber-900' : 'text-stone-700'}`}>
+              {d.groomName}
+            </h1>
+            <div className="flex items-center gap-4 my-3">
+              <div className={`h-px w-14 ${t.dividerColor}`} />
+              <span className={`text-3xl font-light ${ampColor}`}>&amp;</span>
+              <div className={`h-px w-14 ${t.dividerColor}`} />
+            </div>
+            <h1 className={`text-4xl font-light ${themeId === 'klasik' ? 'text-amber-900' : 'text-stone-700'}`}>
+              {d.brideName}
+            </h1>
+
+            {(d.groomFather || d.groomMother || d.brideFather || d.brideMother) && (
+              <div className="mt-4 space-y-1">
+                {(d.groomFather || d.groomMother) && (
+                  <p className="text-xs text-stone-400 leading-relaxed">
+                    Putra dari{' '}
+                    {[d.groomFather && `Bapak ${d.groomFather}`, d.groomMother && `Ibu ${d.groomMother}`]
+                      .filter(Boolean).join(' & ')}
+                  </p>
+                )}
+                {(d.brideFather || d.brideMother) && (
+                  <p className="text-xs text-stone-400 leading-relaxed">
+                    Putri dari{' '}
+                    {[d.brideFather && `Bapak ${d.brideFather}`, d.brideMother && `Ibu ${d.brideMother}`]
+                      .filter(Boolean).join(' & ')}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {d.resepsiDate && (
+              <p className="text-xs text-stone-400 mt-5 tracking-widest uppercase">
+                {fmt(d.resepsiDate, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              </p>
+            )}
+
+            <div className="mt-6">
+              <SectionOrnament themeId={themeId} ornamentColor={t.ornamentColor} />
+            </div>
+            <div className="mt-6 text-stone-300 text-xs" style={{ animation: 'floatY 2s ease-in-out infinite' }}>↓</div>
           </div>
         </section>
 
+        {/* ── Countdown ────────────────────────── */}
+        <RevealSection className={`py-14 px-6 text-center ${t.sectionBg}`}>
+          <SectionTitleComp label="Menuju Hari Bahagia" t={t} />
+          <CountdownFlip timeLeft={timeLeft} boxCls={t.countdownBox} />
+        </RevealSection>
+
         {/* ── Info Acara ───────────────────────── */}
-        <section className="py-14 px-6 max-w-sm mx-auto">
-          <SectionTitle label="Detail Acara" t={t} />
+        <RevealSection className="py-14 px-6 max-w-sm mx-auto">
+          <SectionTitleComp label="Detail Acara" t={t} />
 
           {d.openingText && (
             <p className="text-sm text-stone-500 text-center leading-relaxed italic mb-10">{d.openingText}</p>
@@ -419,7 +439,7 @@ export default function InvitationPage() {
 
           <div className="space-y-4">
             {d.akadDate && (
-              <div className={`rounded-2xl p-5 ${t.cardBg}`}>
+              <div className={`rounded-2xl p-5 tilt-card ${t.cardBg}`}>
                 <p className={`text-[10px] tracking-[.2em] uppercase ${t.accentText} font-semibold mb-3`}>Akad Nikah</p>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
@@ -436,7 +456,7 @@ export default function InvitationPage() {
               </div>
             )}
 
-            <div className={`rounded-2xl p-5 ${t.cardBg}`}>
+            <div className={`rounded-2xl p-5 tilt-card ${t.cardBg}`}>
               <p className={`text-[10px] tracking-[.2em] uppercase ${t.accentText} font-semibold mb-3`}>Resepsi Pernikahan</p>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
@@ -474,73 +494,79 @@ export default function InvitationPage() {
               )}
             </div>
           </div>
-        </section>
+        </RevealSection>
 
         {/* ── Galeri Foto ──────────────────────── */}
         {d.photos && d.photos.length > 0 && (
-          <section className={`py-14 px-6 ${t.sectionBg}`}>
+          <RevealSection className={`py-14 px-6 ${t.sectionBg}`}>
             <div className="max-w-sm mx-auto">
-              <SectionTitle label="Galeri Foto" t={t} />
+              <SectionTitleComp label="Galeri Foto" t={t} />
               <div className="grid grid-cols-2 gap-2">
                 {d.photos.map((url, i) => (
                   <button
                     key={url}
                     onClick={() => setLightboxIndex(i)}
-                    className={`overflow-hidden rounded-2xl focus:outline-none group ${
-                      i === 0 ? 'col-span-2 aspect-video' : 'aspect-square'
+                    className={`overflow-hidden focus:outline-none group ${
+                      i === 0 ? 'col-span-2 aspect-video rounded-3xl' : 'aspect-square rounded-2xl'
                     }`}
+                    style={{
+                      animation: `slideUp 0.6s ${0.1 * i}s ease both`,
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                    }}
                   >
                     <img
                       src={url}
                       alt={`Foto ${i + 1}`}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                       loading="lazy"
                     />
                   </button>
                 ))}
               </div>
             </div>
-          </section>
+          </RevealSection>
         )}
 
         {/* ── Lightbox ─────────────────────────── */}
         {lightboxIndex !== null && d.photos && (
           <div
-            className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4"
             onClick={() => setLightboxIndex(null)}
+            style={{ animation: 'fadeIn 0.2s ease' }}
           >
-            <button onClick={() => setLightboxIndex(null)} className="absolute top-4 right-4 text-white/70 hover:text-white text-3xl leading-none">×</button>
+            <button onClick={() => setLightboxIndex(null)} className="absolute top-4 right-4 text-white/60 hover:text-white text-3xl leading-none transition-colors">×</button>
             {lightboxIndex > 0 && (
               <button
                 onClick={(e) => { e.stopPropagation(); setLightboxIndex(lightboxIndex - 1) }}
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/10 text-3xl"
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full text-white/60 hover:text-white hover:bg-white/10 text-3xl transition-all"
               >‹</button>
             )}
             <img
               src={d.photos[lightboxIndex]}
               alt={`Foto ${lightboxIndex + 1}`}
-              className="max-h-[85vh] max-w-full object-contain rounded-xl shadow-2xl"
+              className="max-h-[85vh] max-w-full object-contain rounded-2xl shadow-2xl"
+              style={{ animation: 'slideUp 0.3s ease' }}
               onClick={(e) => e.stopPropagation()}
             />
             {lightboxIndex < d.photos.length - 1 && (
               <button
                 onClick={(e) => { e.stopPropagation(); setLightboxIndex(lightboxIndex + 1) }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/10 text-3xl"
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full text-white/60 hover:text-white hover:bg-white/10 text-3xl transition-all"
               >›</button>
             )}
-            <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/50 text-sm tabular-nums">
+            <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/40 text-sm tabular-nums">
               {lightboxIndex + 1} / {d.photos.length}
             </p>
           </div>
         )}
 
         {/* ── RSVP ─────────────────────────────── */}
-        <section className="py-14 px-6">
+        <RevealSection className="py-14 px-6">
           <div className="max-w-sm mx-auto">
-            <SectionTitle label="Konfirmasi Kehadiran" t={t} />
+            <SectionTitleComp label="Konfirmasi Kehadiran" t={t} />
             {submitted ? (
-              <div className={`text-center py-10 rounded-2xl ${t.cardBg}`}>
-                <p className="text-3xl mb-3">🌸</p>
+              <div className={`text-center py-10 rounded-2xl ${t.cardBg}`} style={{ animation: 'slideUp 0.5s ease' }}>
+                <p className="text-4xl mb-3">🌸</p>
                 <p className="text-stone-600 text-sm font-medium">Terima kasih!</p>
                 <p className="text-stone-400 text-sm mt-1">Kami sangat menantikan kehadiran Anda.</p>
               </div>
@@ -579,7 +605,7 @@ export default function InvitationPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs text-stone-500 mb-1.5">Ucapan & doa</label>
+                  <label className="block text-xs text-stone-500 mb-1.5">Ucapan &amp; doa</label>
                   <textarea
                     value={rsvpForm.message}
                     rows={3}
@@ -591,23 +617,31 @@ export default function InvitationPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className={`w-full py-3 disabled:opacity-60 text-white text-sm rounded-xl transition-colors font-medium ${t.submitBtn}`}
+                  className={`w-full py-3 disabled:opacity-60 text-white text-sm rounded-xl transition-all font-medium hover:scale-[1.02] active:scale-95 ${t.submitBtn}`}
+                  style={{ boxShadow: '0 4px 15px rgba(0,0,0,0.15)' }}
                 >
                   {submitting ? 'Mengirim...' : 'Kirim Konfirmasi'}
                 </button>
               </form>
             )}
           </div>
-        </section>
+        </RevealSection>
 
         {/* ── Ucapan & Doa ─────────────────────── */}
         {ucapan.length > 0 && (
-          <section className={`py-14 px-6 ${t.sectionBg}`}>
+          <RevealSection className={`py-14 px-6 ${t.sectionBg}`}>
             <div className="max-w-sm mx-auto">
-              <SectionTitle label="Ucapan & Doa" t={t} />
+              <SectionTitleComp label="Ucapan &amp; Doa" t={t} />
               <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
-                {ucapan.map((g) => (
-                  <div key={g.id} className="bg-white rounded-2xl p-4 shadow-sm border border-stone-100">
+                {ucapan.map((g, i) => (
+                  <div
+                    key={g.id}
+                    className={`bg-white rounded-2xl p-4 shadow-sm border border-stone-100 ${i % 2 === 0 ? 'tilt-card' : ''}`}
+                    style={{
+                      animation: `slideUp 0.5s ${i * 0.08}s ease both`,
+                      borderLeft: i % 2 === 0 && t.ornamentColor ? `3px solid ${t.ornamentColor}40` : undefined,
+                    }}
+                  >
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-sm font-medium text-stone-700">{g.name}</p>
                       <p className="text-[10px] text-stone-300 whitespace-nowrap mt-0.5">
@@ -623,19 +657,22 @@ export default function InvitationPage() {
                 ))}
               </div>
             </div>
-          </section>
+          </RevealSection>
         )}
 
         {/* ── Penutup ───────────────────────────── */}
-        <section className={`py-14 px-8 text-center ${t.heroBg}`}>
-          <div className="max-w-xs mx-auto">
-            <div className="flex justify-center mb-5"><Ornament /></div>
+        <RevealSection className={`py-16 px-8 text-center ${t.heroBg} relative overflow-hidden`}>
+          <FloatingParticles themeId={themeId} />
+          <div className="max-w-xs mx-auto relative z-10">
+            <div className="flex justify-center mb-5">
+              <SectionOrnament themeId={themeId} ornamentColor={t.ornamentColor} />
+            </div>
             <p className="text-sm text-stone-500 leading-relaxed italic">
               Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan memberikan doa restu.
             </p>
             <p className={`text-xs ${t.accentText} mt-5`}>Wassalamu&apos;alaikum Warahmatullahi Wabarakatuh</p>
           </div>
-        </section>
+        </RevealSection>
 
         {/* ── Footer ───────────────────────────── */}
         <footer className="py-6 text-center bg-stone-800">
