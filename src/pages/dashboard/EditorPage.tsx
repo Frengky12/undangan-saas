@@ -23,7 +23,9 @@ const EMPTY_FORM: InvitationData = {
   groomName: '',
   brideName: '',
   groomFather: '',
+  groomMother: '',
   brideFather: '',
+  brideMother: '',
   akadDate: '',
   akadTime: '08:00',
   resepsiDate: '',
@@ -224,10 +226,12 @@ export default function EditorPage() {
         <Card title="Data Pengantin">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
-              { name: 'groomName',   label: 'Nama mempelai pria *',    placeholder: 'Muhammad Rafi' },
-              { name: 'brideName',   label: 'Nama mempelai wanita *',   placeholder: 'Sarah Amalia' },
-              { name: 'groomFather', label: 'Nama ayah mempelai pria',  placeholder: 'Bapak Ahmad' },
-              { name: 'brideFather', label: 'Nama ayah mempelai wanita', placeholder: 'Bapak Hasan' },
+              { name: 'groomName',   label: 'Nama mempelai pria *',      placeholder: 'Muhammad Rafi' },
+              { name: 'brideName',   label: 'Nama mempelai wanita *',     placeholder: 'Sarah Amalia' },
+              { name: 'groomFather', label: 'Ayah mempelai pria',         placeholder: 'Bapak Ahmad' },
+              { name: 'brideFather', label: 'Ayah mempelai wanita',       placeholder: 'Bapak Hasan' },
+              { name: 'groomMother', label: 'Ibu mempelai pria',          placeholder: 'Ibu Fatimah' },
+              { name: 'brideMother', label: 'Ibu mempelai wanita',        placeholder: 'Ibu Aisyah' },
             ].map(({ name, label, placeholder }) => (
               <div key={name}>
                 <label className="block text-xs text-stone-500 mb-1.5">{label}</label>

@@ -358,12 +358,23 @@ export default function InvitationPage() {
           </div>
           <h1 className="text-4xl font-light text-stone-700">{d.brideName}</h1>
 
-          {(d.groomFather || d.brideFather) && (
-            <p className="text-xs text-stone-400 mt-4 leading-relaxed max-w-[280px]">
-              {d.groomFather && `Putra dari ${d.groomFather}`}
-              {d.groomFather && d.brideFather && ' · '}
-              {d.brideFather && `Putri dari ${d.brideFather}`}
-            </p>
+          {(d.groomFather || d.groomMother || d.brideFather || d.brideMother) && (
+            <div className="mt-4 space-y-1">
+              {(d.groomFather || d.groomMother) && (
+                <p className="text-xs text-stone-400 leading-relaxed">
+                  Putra dari{' '}
+                  {[d.groomFather && `Bapak ${d.groomFather}`, d.groomMother && `Ibu ${d.groomMother}`]
+                    .filter(Boolean).join(' & ')}
+                </p>
+              )}
+              {(d.brideFather || d.brideMother) && (
+                <p className="text-xs text-stone-400 leading-relaxed">
+                  Putri dari{' '}
+                  {[d.brideFather && `Bapak ${d.brideFather}`, d.brideMother && `Ibu ${d.brideMother}`]
+                    .filter(Boolean).join(' & ')}
+                </p>
+              )}
+            </div>
           )}
 
           {d.resepsiDate && (
@@ -475,12 +486,14 @@ export default function InvitationPage() {
                   <button
                     key={url}
                     onClick={() => setLightboxIndex(i)}
-                    className="aspect-square overflow-hidden rounded-2xl focus:outline-none"
+                    className={`overflow-hidden rounded-2xl focus:outline-none group ${
+                      i === 0 ? 'col-span-2 aspect-video' : 'aspect-square'
+                    }`}
                   >
                     <img
                       src={url}
                       alt={`Foto ${i + 1}`}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                       loading="lazy"
                     />
                   </button>

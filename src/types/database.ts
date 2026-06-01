@@ -7,7 +7,9 @@ export interface InvitationData {
   groomName: string
   brideName: string
   groomFather?: string
+  groomMother?: string
   brideFather?: string
+  brideMother?: string
   akadDate: string           // format: YYYY-MM-DD
   akadTime: string           // format: HH:MM
   resepsiDate: string
