@@ -8,6 +8,7 @@ import { THEMES } from '../../components/invitation/themes'
 import { SectionOrnament } from '../../components/invitation/Ornaments'
 import { FloatingParticles } from '../../components/invitation/FloatingParticles'
 import { CountdownFlip } from '../../components/invitation/CountdownFlip'
+import { Confetti } from '../../components/invitation/Confetti'
 import type { ThemeId } from '../../types/database'
 
 function resolveAudioUrl(url: string): string {
@@ -80,6 +81,7 @@ export default function InvitationPage() {
   const [musicError, setMusicError] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [coverReady, setCoverReady] = useState(false)
+  const [showConfetti, setShowConfetti] = useState(false)
   const audioRef = useRef<HTMLAudioElement>(null)
 
   useEffect(() => {
@@ -137,6 +139,8 @@ export default function InvitationPage() {
   async function handleRsvp(e: React.FormEvent) {
     e.preventDefault()
     await submitRsvp(rsvpForm)
+    setShowConfetti(true)
+    setTimeout(() => setShowConfetti(false), 4500)
   }
 
   if (loading) return (
@@ -190,20 +194,47 @@ export default function InvitationPage() {
         />
       )}
 
+      <Confetti themeId={themeId} active={showConfetti} />
+
       {/* ── Cover Screen ─────────────────────────────────── */}
       <div
-        className={`fixed inset-0 z-40 flex flex-col items-center justify-center px-8 text-center ${t.coverBg} overflow-hidden`}
+        className={`fixed inset-0 z-40 flex flex-col items-center justify-center px-8 text-center overflow-hidden ${!d.photoUrl ? t.coverBg : ''}`}
         style={{
-          transition: 'opacity 0.6s ease, transform 0.6s ease',
+          transition: 'opacity 0.7s ease, transform 0.7s ease',
           opacity: openAnim ? 0 : 1,
-          transform: openAnim ? 'scale(1.08)' : 'scale(1)',
+          transform: openAnim ? 'scale(1.1)' : 'scale(1)',
           pointerEvents: openAnim ? 'none' : 'auto',
         }}
       >
+        {/* ── Full-screen foto background ── */}
+        {d.photoUrl && (
+          <>
+            <img
+              src={d.photoUrl}
+              alt="foto pengantin"
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{ transform: openAnim ? 'scale(1.15)' : 'scale(1)', transition: 'transform 0.7s ease' }}
+            />
+            {/* Overlay gradient per tema */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: themeId === 'floral'
+                  ? 'linear-gradient(to bottom, rgba(136,19,55,0.35) 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.75) 100%)'
+                  : themeId === 'klasik'
+                  ? 'linear-gradient(to bottom, rgba(120,53,15,0.4) 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.78) 100%)'
+                  : 'linear-gradient(to bottom, rgba(30,27,75,0.4) 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.75) 100%)',
+              }}
+            />
+            {/* Subtle vignette */}
+            <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.4) 100%)' }} />
+          </>
+        )}
+
         <FloatingParticles themeId={themeId} />
 
-        {/* Background geometric (modern only) */}
-        {themeId === 'modern' && (
+        {/* Background geometric (modern, tanpa foto) */}
+        {themeId === 'modern' && !d.photoUrl && (
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             <div className="absolute top-1/4 left-1/4 w-32 h-32 border border-indigo-200/30 rounded-full geo-rotate" style={{ animationDuration: '25s' }} />
             <div className="absolute top-1/3 right-1/4 w-20 h-20 border border-indigo-200/20 rotate-45 geo-rotate" style={{ animationDuration: '18s', animationDirection: 'reverse' }} />
@@ -211,94 +242,83 @@ export default function InvitationPage() {
           </div>
         )}
 
+        {/* ── Konten cover ── */}
         <div
           className="relative z-10 flex flex-col items-center"
           style={{ opacity: coverReady ? 1 : 0, transition: 'opacity 0.5s ease' }}
         >
-          <div className="animate-slide-up" style={{ animationDelay: '0.1s', animationFillMode: 'both', opacity: 0 }}>
-            <SectionOrnament themeId={themeId} ornamentColor={t.ornamentColor} />
+          <div style={{ animation: 'fadeIn 0.8s 0.1s ease forwards', opacity: 0 }}>
+            <SectionOrnament themeId={themeId} ornamentColor={d.photoUrl ? '#ffffff' : t.ornamentColor} />
           </div>
 
           <p
-            className={`text-[10px] tracking-[.3em] uppercase ${t.accentText} mt-5 mb-6`}
+            className={`text-[10px] tracking-[.3em] uppercase mt-5 mb-6 ${d.photoUrl ? 'text-white/70' : t.accentText}`}
             style={{ animation: 'fadeIn 1s 0.3s ease forwards', opacity: 0 }}
           >
             Bismillahirrahmanirrahim
           </p>
 
-          {d.photoUrl && (
-            <div
-              className="mb-5"
-              style={{ animation: 'slideUp 0.8s 0.4s ease forwards', opacity: 0 }}
-            >
-              <img
-                src={d.photoUrl}
-                alt="foto pengantin"
-                className={`w-24 h-24 object-cover border-4 photo-3d ${t.photoBorder} ${t.photoShape}`}
-              />
-            </div>
-          )}
-
           <p
-            className="text-xs text-stone-400 italic max-w-xs leading-relaxed mb-6"
-            style={{ animation: 'fadeIn 1s 0.6s ease forwards', opacity: 0 }}
+            className={`text-xs italic max-w-xs leading-relaxed mb-8 ${d.photoUrl ? 'text-white/60' : 'text-stone-400'}`}
+            style={{ animation: 'fadeIn 1s 0.5s ease forwards', opacity: 0 }}
           >
             {d.quranVerse || 'وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا (QS. Ar-Rum: 21)'}
           </p>
 
           <h1
-            className="text-3xl font-light text-stone-700"
-            style={{ animation: 'nameReveal 0.9s 0.8s ease forwards', opacity: 0 }}
+            className={`text-4xl font-light drop-shadow-md ${d.photoUrl ? 'text-white' : 'text-stone-700'}`}
+            style={{ animation: 'nameReveal 0.9s 0.7s ease forwards', opacity: 0 }}
           >
             {d.groomName}
           </h1>
 
           <div
-            className="flex items-center gap-3 my-2"
-            style={{ animation: 'fadeIn 0.6s 1.1s ease forwards', opacity: 0 }}
+            className="flex items-center gap-4 my-3"
+            style={{ animation: 'fadeIn 0.6s 1s ease forwards', opacity: 0 }}
           >
-            <div className={`h-px w-8 ${t.dividerColor}`} />
-            <span className={`text-lg ${ampColor}`}>&amp;</span>
-            <div className={`h-px w-8 ${t.dividerColor}`} />
+            <div className={`h-px w-10 ${d.photoUrl ? 'bg-white/40' : t.dividerColor}`} />
+            <span className={`text-2xl font-light ${d.photoUrl ? 'text-white/80' : ampColor}`}>&amp;</span>
+            <div className={`h-px w-10 ${d.photoUrl ? 'bg-white/40' : t.dividerColor}`} />
           </div>
 
           <h1
-            className="text-3xl font-light text-stone-700"
-            style={{ animation: 'nameReveal 0.9s 1.2s ease forwards', opacity: 0 }}
+            className={`text-4xl font-light drop-shadow-md ${d.photoUrl ? 'text-white' : 'text-stone-700'}`}
+            style={{ animation: 'nameReveal 0.9s 1.1s ease forwards', opacity: 0 }}
           >
             {d.brideName}
           </h1>
 
           {d.resepsiDate && (
             <p
-              className="text-xs text-stone-400 mt-4 tracking-widest"
-              style={{ animation: 'fadeIn 0.8s 1.5s ease forwards', opacity: 0 }}
+              className={`text-xs mt-5 tracking-widest uppercase ${d.photoUrl ? 'text-white/55' : 'text-stone-400'}`}
+              style={{ animation: 'fadeIn 0.8s 1.4s ease forwards', opacity: 0 }}
             >
               {fmt(d.resepsiDate, { day: 'numeric', month: 'long', year: 'numeric' })}
             </p>
           )}
 
           <div
-            className="mt-5 mb-7"
-            style={{ animation: 'fadeIn 0.8s 1.6s ease forwards', opacity: 0 }}
+            className="mt-5 mb-8"
+            style={{ animation: 'fadeIn 0.8s 1.5s ease forwards', opacity: 0 }}
           >
-            <SectionOrnament themeId={themeId} ornamentColor={t.ornamentColor} />
+            <SectionOrnament themeId={themeId} ornamentColor={d.photoUrl ? '#ffffff' : t.ornamentColor} />
           </div>
 
           <button
             onClick={openInvitation}
-            className={`relative px-8 py-3 rounded-full text-sm font-medium text-white shadow-lg transition-all hover:scale-105 active:scale-95 ${t.submitBtn}`}
+            className={`relative px-8 py-3 rounded-full text-sm font-medium text-white shadow-xl transition-all hover:scale-105 active:scale-95 ${t.submitBtn}`}
             style={{
-              animation: `fadeIn 0.8s 1.8s ease forwards, ${glowAnim}`,
+              animation: `fadeIn 0.8s 1.7s ease forwards, ${glowAnim}`,
               opacity: 0,
               animationFillMode: 'forwards',
+              backdropFilter: d.photoUrl ? 'blur(4px)' : undefined,
             }}
           >
             ✉ Buka Undangan
           </button>
           <p
-            className="text-[10px] text-stone-300 mt-3"
-            style={{ animation: 'fadeIn 0.8s 2s ease forwards', opacity: 0 }}
+            className={`text-[10px] mt-3 ${d.photoUrl ? 'text-white/40' : 'text-stone-300'}`}
+            style={{ animation: 'fadeIn 0.8s 1.9s ease forwards', opacity: 0 }}
           >
             Sentuh untuk membuka
           </p>
