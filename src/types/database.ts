@@ -3,6 +3,18 @@
 export type Json = string | number | boolean | null | { [key: string]: Json } | Json[]
 
 // ── DATA UNDANGAN ─────────────────────────────────────────
+export interface StoryMilestone {
+  year: string
+  title: string
+  description: string
+}
+
+export interface BankAccount {
+  bank: string
+  accountNumber: string
+  accountName: string
+}
+
 export interface InvitationData {
   groomName: string
   brideName: string
@@ -20,9 +32,13 @@ export interface InvitationData {
   photoUrl?: string          // URL dari Supabase Storage
   photos?: string[]          // Galeri foto pengantin
   musicUrl?: string
-  quranVerse?: string        // mis: "QS. Ar-Rum: 21"
+  quranVerse?: string
   openingText?: string
-  colorScheme?: string       // hex color untuk tema
+  colorScheme?: string
+  story?: StoryMilestone[]   // Kisah perjalanan cinta
+  bankAccounts?: BankAccount[] // Angpao digital
+  qrisUrl?: string           // URL gambar QRIS
+  liveStreamUrl?: string     // Link YouTube/Zoom
 }
 
 export type ThemeId = 'floral' | 'modern' | 'klasik'

@@ -11,7 +11,7 @@ import { useInvitations } from '../../hooks/useInvitations'
 import { usePhotoUpload } from '../../hooks/usePhotoUpload'
 import { useAudioUpload } from '../../hooks/useAudioUpload'
 import DashboardLayout from '../../components/dashboard/DashboardLayout'
-import type { InvitationData, ThemeId } from '../../types/database'
+import type { InvitationData, ThemeId, StoryMilestone, BankAccount } from '../../types/database'
 
 const THEMES: { id: ThemeId; label: string; desc: string; color: string }[] = [
   { id: 'floral',  label: 'Floral Islami',  desc: 'Motif bunga dengan sentuhan arabesque', color: '#f9a8d4' },
@@ -37,6 +37,10 @@ const EMPTY_FORM: InvitationData = {
   musicUrl: '',
   quranVerse: 'وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا (QS. Ar-Rum: 21)',
   openingText: 'Dengan memohon ridho Allah Subhanahu Wa Ta\'ala, kami mengundang Bapak/Ibu/Saudara/i untuk hadir di pernikahan kami.',
+  story: [],
+  bankAccounts: [],
+  qrisUrl: '',
+  liveStreamUrl: '',
 }
 
 const inputCls = 'w-full px-3 py-2 rounded-lg border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-200 bg-white'
@@ -355,6 +359,159 @@ export default function EditorPage() {
               </div>
             )}
           </div>
+        </Card>
+
+        {/* Kisah Kami */}
+        <Card title="Kisah Kami (Opsional)">
+          <div className="space-y-3">
+            {(form.story ?? []).map((item, i) => (
+              <div key={i} className="border border-stone-200 rounded-xl p-4 space-y-2.5 bg-stone-50">
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <label className="block text-xs text-stone-400 mb-1">Tahun / Periode</label>
+                    <input
+                      type="text"
+                      value={item.year}
+                      placeholder="2021"
+                      className={inputCls}
+                      onChange={e => setForm(p => ({
+                        ...p,
+                        story: (p.story ?? []).map((s, j) => j === i ? { ...s, year: e.target.value } : s)
+                      }))}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setForm(p => ({ ...p, story: (p.story ?? []).filter((_, j) => j !== i) }))}
+                    className="mt-5 w-8 h-8 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 transition-colors text-lg"
+                  >×</button>
+                </div>
+                <div>
+                  <label className="block text-xs text-stone-400 mb-1">Judul Momen</label>
+                  <input
+                    type="text"
+                    value={item.title}
+                    placeholder="Pertama Bertemu"
+                    className={inputCls}
+                    onChange={e => setForm(p => ({
+                      ...p,
+                      story: (p.story ?? []).map((s, j) => j === i ? { ...s, title: e.target.value } : s)
+                    }))}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-stone-400 mb-1">Cerita Singkat</label>
+                  <textarea
+                    rows={2}
+                    value={item.description}
+                    placeholder="Kami bertemu pertama kali di..."
+                    className={`${inputCls} resize-none`}
+                    onChange={e => setForm(p => ({
+                      ...p,
+                      story: (p.story ?? []).map((s, j) => j === i ? { ...s, description: e.target.value } : s)
+                    }))}
+                  />
+                </div>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => setForm(p => ({ ...p, story: [...(p.story ?? []), { year: '', title: '', description: '' } as StoryMilestone] }))}
+              className="w-full py-2.5 border-2 border-dashed border-stone-200 hover:border-rose-300 rounded-xl text-sm text-stone-400 hover:text-rose-400 transition-colors"
+            >
+              + Tambah Momen
+            </button>
+          </div>
+        </Card>
+
+        {/* Angpao Digital */}
+        <Card title="Angpao Digital (Opsional)">
+          <div className="space-y-3">
+            {(form.bankAccounts ?? []).map((acc, i) => (
+              <div key={i} className="border border-stone-200 rounded-xl p-4 bg-stone-50 space-y-2.5">
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <label className="block text-xs text-stone-400 mb-1">Nama Bank</label>
+                    <input
+                      type="text"
+                      value={acc.bank}
+                      placeholder="BCA / BNI / Mandiri / BSI"
+                      className={inputCls}
+                      onChange={e => setForm(p => ({
+                        ...p,
+                        bankAccounts: (p.bankAccounts ?? []).map((a, j) => j === i ? { ...a, bank: e.target.value } : a)
+                      }))}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setForm(p => ({ ...p, bankAccounts: (p.bankAccounts ?? []).filter((_, j) => j !== i) }))}
+                    className="mt-5 w-8 h-8 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 transition-colors text-lg"
+                  >×</button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-xs text-stone-400 mb-1">Nomor Rekening</label>
+                    <input
+                      type="text"
+                      value={acc.accountNumber}
+                      placeholder="1234567890"
+                      className={inputCls}
+                      onChange={e => setForm(p => ({
+                        ...p,
+                        bankAccounts: (p.bankAccounts ?? []).map((a, j) => j === i ? { ...a, accountNumber: e.target.value } : a)
+                      }))}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-stone-400 mb-1">Nama Pemilik</label>
+                    <input
+                      type="text"
+                      value={acc.accountName}
+                      placeholder="Muhammad Rafi"
+                      className={inputCls}
+                      onChange={e => setForm(p => ({
+                        ...p,
+                        bankAccounts: (p.bankAccounts ?? []).map((a, j) => j === i ? { ...a, accountName: e.target.value } : a)
+                      }))}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => setForm(p => ({ ...p, bankAccounts: [...(p.bankAccounts ?? []), { bank: '', accountNumber: '', accountName: '' } as BankAccount] }))}
+              className="w-full py-2.5 border-2 border-dashed border-stone-200 hover:border-rose-300 rounded-xl text-sm text-stone-400 hover:text-rose-400 transition-colors"
+            >
+              + Tambah Rekening
+            </button>
+            <div>
+              <label className="block text-xs text-stone-500 mb-1.5">URL Gambar QRIS (opsional)</label>
+              <input
+                name="qrisUrl"
+                type="url"
+                value={form.qrisUrl ?? ''}
+                onChange={handleChange}
+                placeholder="https://... (link gambar QRIS kamu)"
+                className={inputCls}
+              />
+            </div>
+          </div>
+        </Card>
+
+        {/* Live Streaming */}
+        <Card title="Live Streaming (Opsional)">
+          <label className="block text-xs text-stone-500 mb-1.5">Link YouTube / Zoom / Platform lain</label>
+          <input
+            name="liveStreamUrl"
+            type="url"
+            value={form.liveStreamUrl ?? ''}
+            onChange={handleChange}
+            placeholder="https://youtube.com/live/..."
+            className={inputCls}
+          />
+          <p className="text-xs text-stone-400 mt-2">Untuk tamu yang tidak bisa hadir secara langsung.</p>
         </Card>
 
         {/* Tombol simpan di bawah form */}
